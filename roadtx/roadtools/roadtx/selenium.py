@@ -189,8 +189,7 @@ class SeleniumAuthentication():
             otpseed = None
         return userpassword, otpseed
 
-    @selenium_wrap
-    def selenium_login(self, url, identity=None, password=None, otpseed=None, keep=False, capture=False, federated=False, devicecode=None):
+    def selenium_login(self, url, identity=None, password=None, otpseed=None, keep=False, capture=False, federated=False, devicecode=None, cookies=None):
         '''
         Selenium based login with optional autofill of whatever is provided
         '''
@@ -199,6 +198,34 @@ class SeleniumAuthentication():
         if devicecode:
             url = 'https://login.microsoftonline.com/common/oauth2/deviceauth'
         driver.get(url)
+        
+        # inject cookies if specified by user
+        if cookies:
+            print(f"[INFO] injecting cookies from '{cookies}'")
+            with open(cookies, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            cookies = data.get("cookies", data)  # works for wrapped or raw list
+
+            for c in cookies:
+                cookie = {
+                    "name": c["name"],
+                    "value": c["value"],
+                    "domain": c.get("domain"),
+                    "path": c.get("path", "/"),
+                    "secure": c.get("secure", False),
+                    "httpOnly": c.get("httpOnly", False),
+                }
+
+                # Selenium expects "expiry" as int seconds since epoch (optional)
+                exp = c.get("expiry") or c.get("expirationDate") or c.get("expires")
+                if exp:
+                    cookie["expiry"] = int(exp)
+
+                driver.add_cookie(cookie)
+
+            driver.refresh()
+
         # Enter code first if device code flow
         if devicecode:
             el = WebDriverWait(driver, 3000).until(lambda d: d.find_element(By.ID, "otc"))
@@ -332,13 +359,13 @@ class SeleniumAuthentication():
             self.driver.response_interceptor = self.redir_interceptor
         return self.selenium_login(url, identity=identity, password=password, otpseed=otpseed, keep=keep, capture=capture, federated=federated, devicecode=devicecode)
 
-    def selenium_login_regular(self, url, identity=None, password=None, otpseed=None, keep=False, capture=False, federated=False, devicecode=None):
+    def selenium_login_regular(self, url, identity=None, password=None, otpseed=None, keep=False, capture=False, federated=False, devicecode=None, cookies=None):
         '''
         Wrapper for plain login but with redirect URL rewrite support
         '''
         if self.redir_has_custom_scheme():
             self.driver.response_interceptor = self.redir_interceptor
-        return self.selenium_login(url, identity=identity, password=password, otpseed=otpseed, keep=keep, capture=capture, federated=federated, devicecode=devicecode)
+        return self.selenium_login(url, identity=identity, password=password, otpseed=otpseed, keep=keep, capture=capture, federated=federated, devicecode=devicecode, cookies=cookies)
 
     def selenium_login_with_prt(self, url, identity=None, password=None, otpseed=None, keep=False, prtcookie=None, capture=False):
         '''
