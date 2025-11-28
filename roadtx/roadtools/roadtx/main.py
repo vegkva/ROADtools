@@ -645,6 +645,9 @@ def main():
     intauth_parser = subparsers.add_parser('interactiveauth', help='Interactive authentication in Selenium browser window, optional autofill')
     intauth_parser.add_argument('-u', '--username', action='store', metavar='USER', help='User to authenticate')
     intauth_parser.add_argument('-p', '--password', action='store', metavar='PASSWORD', help='Password of the user')
+    intauth_parser.add_argument('--cookies',
+                                action='store',
+                                help='Cookies from evilginx etc, to inject into browser (no need for manual import). Full path to cookie file. format: {"cookies":[ {cookie1},{cookie2} ]}')
     intauth_parser.add_argument('--krbtoken',
                                 action='store',
                                 help='Kerberos auth data from krbsso.py')
@@ -1586,6 +1589,8 @@ def main():
             result = selauth.selenium_login_with_estscookie(url, args.username, args.password, otpseed=args.otpseed, capture=args.capture_code, estscookie=args.estscookie, keep=args.keep_open)
         elif custom_ua:
             result = selauth.selenium_login_with_custom_useragent(url, args.username, args.password, otpseed=args.otpseed, capture=args.capture_code, federated=args.federated, keep=args.keep_open)
+        elif args.cookies:
+            result = selauth.selenium_login_regular(url, args.username, args.password, otpseed=args.otpseed, capture=args.capture_code, federated=args.federated, keep=args.keep_open, cookies=args.cookies)
         else:
             result = selauth.selenium_login_regular(url, args.username, args.password, otpseed=args.otpseed, capture=args.capture_code, federated=args.federated, keep=args.keep_open)
         if args.capture_code:
