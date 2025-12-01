@@ -18,7 +18,7 @@ from roadtools.roadtx.federation import EncryptedPFX, SAMLSigner, encode_object_
 import pyotp
 import requests
 
-RR_HELP = 'ROADtools Token eXchange by Dirk-jan Mollema (@_dirkjan) / Outsider Security (outsidersecurity.nl)'
+RR_HELP = 'blaROADtools Token eXchange by Dirk-jan Mollema (@_dirkjan) / Outsider Security (outsidersecurity.nl)'
 
 def main():
     # Primary argument parser
@@ -645,9 +645,12 @@ def main():
     intauth_parser = subparsers.add_parser('interactiveauth', help='Interactive authentication in Selenium browser window, optional autofill')
     intauth_parser.add_argument('-u', '--username', action='store', metavar='USER', help='User to authenticate')
     intauth_parser.add_argument('-p', '--password', action='store', metavar='PASSWORD', help='Password of the user')
+    intauth_parser.add_argument('--headless',
+                                action='store_true',
+                                help='Headless browser')
     intauth_parser.add_argument('--cookies',
                                 action='store',
-                                help='Cookies from evilginx etc, to inject into browser (no need for manual import). Full path to cookie file. format: {"cookies":[ {cookie1},{cookie2} ]}')
+                                help='Cookies from evilginx etc, to inject into browser (no need for manual import)')
     intauth_parser.add_argument('--krbtoken',
                                 action='store',
                                 help='Kerberos auth data from krbsso.py')
@@ -1570,7 +1573,7 @@ def main():
             redirect_url = args.redirect_url
         else:
             redirect_url = find_redirurl_for_client(auth.client_id, interactive=False)
-        selauth = SeleniumAuthentication(auth, deviceauth, redirect_url, proxy=args.proxy, proxy_type=args.proxy_type)
+        selauth = SeleniumAuthentication(auth, deviceauth, redirect_url, proxy=args.proxy, proxy_type=args.proxy_type, headless=args.headless)
         if args.url:
             url = args.url
         else:

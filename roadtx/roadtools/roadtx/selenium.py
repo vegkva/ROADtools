@@ -41,7 +41,7 @@ def selenium_wrap(func):
     return wrapped
 
 class SeleniumAuthentication():
-    def __init__(self, auth, deviceauth, redirurl, proxy=None, proxy_type="http"):
+    def __init__(self, auth, deviceauth, redirurl, proxy=None, proxy_type="http", headless=None):
         if proxy:
             # Strip possible prefixes
             proxy = proxy.replace('http://','').replace('https://','').replace('socks://','').replace('socks4://','').replace('socks5://','')
@@ -51,7 +51,7 @@ class SeleniumAuthentication():
         self.deviceauth = deviceauth
         self.driver = None
         self.redirurl = redirurl
-        self.headless = False
+        self.headless = headless
 
     def get_service(self, driverpath):
         # Default expects geckodriver to be in path, but if it exists locally we use that
@@ -108,6 +108,7 @@ class SeleniumAuthentication():
             driver = webdriver_wire.Firefox(service=service,  seleniumwire_options=options)
         else:
             driver = webdriver.Firefox(service=service)
+        
         return driver
 
     @staticmethod
@@ -189,6 +190,7 @@ class SeleniumAuthentication():
             otpseed = None
         return userpassword, otpseed
 
+    @selenium_wrap
     def selenium_login(self, url, identity=None, password=None, otpseed=None, keep=False, capture=False, federated=False, devicecode=None, cookies=None):
         '''
         Selenium based login with optional autofill of whatever is provided
@@ -221,7 +223,6 @@ class SeleniumAuthentication():
                 exp = c.get("expiry") or c.get("expirationDate") or c.get("expires")
                 if exp:
                     cookie["expiry"] = int(exp)
-
                 driver.add_cookie(cookie)
 
             driver.refresh()
